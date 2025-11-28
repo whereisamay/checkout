@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Return from Checkout</title>
+  </head>
+  <body>
+    <h1>Thanks (test return)</h1>
+    <p>Session ID: <span id="sessionId"></span></p>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      document.getElementById("sessionId").textContent =
+        params.get("session_id") || "none";
+    </script>
+  </body>
+</html>
