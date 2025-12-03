@@ -1,51 +1,36 @@
-import express from "express";
-import Stripe from "stripe";
-import dotenv from "dotenv";
-
-dotenv.config();
+const express = require('express');
+const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const app = express();
-app.use(express.static("public"));
-app.use(express.json());
+const PORT = process.env.PORT || 3001;
 
-// Use your test secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-11-26.acacia", // or latest from your account
+// Middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// CORS middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
 });
 
-// Create Checkout Session for embedded Checkout
-app.post("/create-checkout-session", async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "embedded",
-      return_url: "http://localhost:4242/return.html?session_id={CHECKOUT_SESSION_ID}",
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            unit_amount: 2500,
-            product_data: {
-              name: "Test Product",
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      // Let Checkout decide which of your enabled methods to show.
-      // Optionally, you can force a set like this:
-      // payment_method_types: ["card", "link", "klarna", "ideal"],
-      automatic_tax: { enabled: false },
-    });
+// ========================
+// PRODUCTS API
+// ========================
 
-    res.json({ clientSecret: session.client_secret });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-const PORT = 4242;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Get all products
+app.get('/api/products', (req, res) => {
+    const products = [
+        { id: 1, name: 'Wireless Headphones', price: 79.99, emoji: '🎧', description: 'Premium sound quality' },
+        { id: 2, name: 'Smart Watch', price: 199.99, emoji: '⌚', description: 'Track your fitness' },
+        { id: 3, name: 'USB-C Cable', price: 14.99, emoji: '🔌', description: 'Fast charging cable' },
+        { id: 4, name: 'Portable Charger', price: 34.99, emoji: '🔋', description: '20000mAh capacity' },
+        { id: 5, name: 'Phone Stand', price: 24.99, emoji: '📱', description: 'Adjustable holder' },
+        { id: 6, name: 'Screen Protector', price: 9.99, emoji: '🛡️', description: 'Tempered glass' },
+    ];
+    res.json(products);
 });
