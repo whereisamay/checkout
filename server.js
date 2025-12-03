@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -8,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static('.')); // Serve static files from root directory
 
 // CORS middleware
 app.use((req, res, next) => {
@@ -16,6 +17,15 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
+});
+
+// ========================
+// SERVE FRONTEND
+// ========================
+
+// Serve index.html on root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ========================
@@ -34,3 +44,15 @@ app.get('/api/products', (req, res) => {
     ];
     res.json(products);
 });
+
+// ========================
+// PAYMENT INITIALIZATION
+// ========================
+
+// Initialize payment (create order/payment intent)
+app.post('/api/payment/initialize', (req, res) => {
+    try {
+        const { email, amount, currency = 'USD', metadata } = req.body;
+
+        if (!email || !amount) {
+            return res.status(400).json({
